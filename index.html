@@ -528,42 +528,225 @@
     display: block;
   }
 
+  /* Field wrapper & mobile label defaults (desktop hides mobile labels) */
+  .fw { display: block; min-width: 0; }
+  .mob-lbl { display: none; }
+
+  /* ===== Mobile-friendly sticky bottom bar ===== */
+  .mobile-bar {
+    display: none;
+  }
+
   @media (max-width: 680px) {
-    .wrap { padding: 20px 14px 60px; }
-    .page-header h1 { font-size: 22px; }
+    html, body { font-size: 16px; }
+    .wrap { padding: 16px 12px 120px; }
+    .page-header { padding-bottom: 14px; margin-bottom: 16px; }
+    .page-header h1 { font-size: 20px; line-height: 1.3; }
+    .page-header p { font-size: 13px; }
+    .eyebrow { font-size: 10px; }
+
+    .card {
+      padding: 16px 14px;
+      margin-bottom: 12px;
+    }
+    .card-title {
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    /* iOSのズーム防止（16px未満で発生）＋ タップしやすい高さ */
+    input[type="text"],
+    input[type="number"],
+    input[type="time"],
+    input[type="date"],
+    input[type="month"],
+    input[type="tel"],
+    input[type="email"],
+    select {
+      font-size: 16px;
+      padding: 13px 12px;
+      min-height: 48px;
+    }
+
+    label { font-size: 13px; margin-bottom: 5px; }
+
     .two-col, .three-col { grid-template-columns: 1fr; gap: 12px; }
+
+    /* ===== 日ごとの稼働時間：カード型で見やすく ===== */
     .row-grid {
+      display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      padding: 12px;
+      grid-template-areas:
+        "date    date"
+        "start   end"
+        "minutes minutes"
+        "del     del";
+      gap: 10px;
+      padding: 14px;
       background: #fafaf7;
-      border-radius: 8px;
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
       margin-bottom: 10px;
+      align-items: stretch;
     }
     .row-grid.header { display: none; }
-    .row-grid > input[type="date"] { grid-column: 1 / -1; }
-    .btn-del { grid-column: 1 / -1; }
+    .row-grid > .fw { display: flex; flex-direction: column; }
+    .row-grid > .fw .mob-lbl {
+      display: block;
+      font-size: 11px;
+      color: var(--ink-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .row-grid > .fw-date { grid-area: date; }
+    .row-grid > .fw-start { grid-area: start; }
+    .row-grid > .fw-end { grid-area: end; }
+    .row-grid > .fw-min { grid-area: minutes; }
+    .row-grid > .fw-min input {
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      font-family: "SF Mono", Menlo, monospace;
+    }
+    .row-grid > .btn-del {
+      grid-area: del;
+      padding: 10px;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    /* 経費行もカード型 */
     .expense-row {
       grid-template-columns: 1fr;
-      gap: 6px;
-      padding: 12px;
+      gap: 10px;
+      padding: 14px;
       background: #fafaf7;
-      border-radius: 8px;
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
       margin-bottom: 10px;
     }
     .expense-row.header { display: none; }
-    .result-row.total .value { font-size: 24px; }
-    .invoice-sheet { padding: 24px 18px; }
-    .inv-title { font-size: 20px; letter-spacing: 0.2em; }
-    .inv-head, .inv-footer { grid-template-columns: 1fr; }
-    .inv-from { text-align: left; }
-    .inv-table { font-size: 12px; }
-    .inv-table th, .inv-table td { padding: 6px 8px; }
+    .expense-row > .fw { display: flex; flex-direction: column; }
+    .expense-row > .fw .mob-lbl {
+      display: block;
+      font-size: 11px;
+      color: var(--ink-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .expense-row > .btn-del { padding: 10px; background: #fff; }
+
+    /* 追加ボタンを大きく */
+    .btn-add { padding: 14px; font-size: 15px; min-height: 52px; }
+
+    /* ラジオボタンを押しやすく */
+    .radio-pill { padding: 14px; min-height: 64px; min-width: 100%; }
+
+    /* 結果表示：金額を大きく */
+    .result-card { padding: 20px 18px; }
+    .result-row { padding: 10px 0; }
+    .result-row .label { font-size: 12px; }
+    .result-row .value { font-size: 14px; }
+    .result-row.total .value { font-size: 30px; }
+
+    /* 請求書プレビュー：スマホで読みやすく */
+    .invoice-sheet { padding: 20px 14px; }
+    .inv-title { font-size: 20px; letter-spacing: 0.2em; margin-bottom: 18px; }
+    .inv-head { grid-template-columns: 1fr; gap: 14px; margin-bottom: 14px; }
+    .inv-to strong { font-size: 15px; }
+    .inv-from { text-align: left; font-size: 12px; }
+    .inv-from .from-name { font-size: 14px; }
+    .inv-amount-top { padding: 12px 14px; }
+    .inv-amount-top .lbl { font-size: 12px; }
+    .inv-amount-top .val { font-size: 20px; }
+    .inv-table { font-size: 11px; }
+    .inv-table th, .inv-table td { padding: 6px 6px; }
+    .inv-footer { grid-template-columns: 1fr; gap: 12px; }
+
+    /* 削除・通常ボタンを大きく */
+    .btn { padding: 13px 18px; min-height: 48px; font-size: 14px; }
+    .btn-del {
+      padding: 10px 14px;
+      min-height: 40px;
+      font-size: 13px;
+    }
+
+    /* トグル */
+    .toggle-wrap { padding: 14px; }
+    .toggle-wrap label { font-size: 14px; }
+    input[type="checkbox"] { width: 20px; height: 20px; }
+
+    /* インフォボックスを少しコンパクトに */
+    .info-box, .note-box { padding: 12px 14px; font-size: 12px; line-height: 1.75; }
+
+    /* アクション（PDF等）を縦並びに */
+    .actions { flex-direction: column; }
+    .actions .btn { width: 100%; }
+
+    /* ===== スマホ用：画面下の固定バー ===== */
+    .mobile-bar {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--ink);
+      color: #fff;
+      padding: 12px 14px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.12);
+      z-index: 100;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .mobile-bar .bar-total {
+      flex: 1;
+      min-width: 0;
+    }
+    .mobile-bar .bar-label {
+      display: block;
+      font-size: 10px;
+      color: #aaa;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+    .mobile-bar .bar-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: "SF Mono", Menlo, monospace;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mobile-bar .bar-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      min-height: 44px;
+    }
+  }
+
+  /* さらに狭い画面向け */
+  @media (max-width: 380px) {
+    .wrap { padding: 14px 10px 120px; }
+    .card { padding: 14px 12px; }
+    .page-header h1 { font-size: 18px; }
+    .result-row.total .value { font-size: 26px; }
   }
   @media print {
     body { background: #fff; }
     .wrap { max-width: 100%; padding: 0; }
-    .card, .btn, .btn-add, .toggle-wrap, .page-header, .info-box, .note-box, .result-card { display: none; }
+    .card, .btn, .btn-add, .toggle-wrap, .page-header, .info-box, .note-box, .result-card, .mobile-bar { display: none; }
     #sec-preview { padding: 0; margin: 0; border: none; background: #fff; }
     #sec-preview .card-title, #sec-preview .actions { display: none; }
     .invoice-sheet { border: none; padding: 0; }
@@ -797,6 +980,15 @@
   </section>
 </div>
 
+<!-- Mobile sticky bottom bar (mobile only) -->
+<div class="mobile-bar" id="mobileBar">
+  <div class="bar-total">
+    <span class="bar-label">ご請求額（税込）</span>
+    <span class="bar-value" id="barTotal">¥0</span>
+  </div>
+  <button class="bar-btn" onclick="scrollToPreview()">プレビュー ↓</button>
+</div>
+
 <div class="toast" id="toast">コピーしました</div>
 
 <script>
@@ -815,10 +1007,22 @@ function addRow(prefill = {}) {
   div.className = 'row-grid';
   div.id = 'row-' + id;
   div.innerHTML = `
-    <input type="date" value="${prefill.date || ''}" aria-label="日付" oninput="calculate()">
-    <input type="time" value="${prefill.start || ''}" aria-label="開始時刻" onchange="autoCalc(${id});calculate()">
-    <input type="time" value="${prefill.end || ''}" aria-label="終了時刻" onchange="autoCalc(${id});calculate()">
-    <input type="number" class="minutes-input" value="${prefill.minutes || ''}" placeholder="分" min="0" max="1440" inputmode="numeric" aria-label="稼働分数" oninput="calculate()">
+    <div class="fw fw-date">
+      <span class="mob-lbl">日付</span>
+      <input type="date" value="${prefill.date || ''}" aria-label="日付" oninput="calculate()">
+    </div>
+    <div class="fw fw-start">
+      <span class="mob-lbl">開始時刻</span>
+      <input type="time" value="${prefill.start || ''}" aria-label="開始時刻" onchange="autoCalc(${id});calculate()">
+    </div>
+    <div class="fw fw-end">
+      <span class="mob-lbl">終了時刻</span>
+      <input type="time" value="${prefill.end || ''}" aria-label="終了時刻" onchange="autoCalc(${id});calculate()">
+    </div>
+    <div class="fw fw-min">
+      <span class="mob-lbl">稼働分数（分）</span>
+      <input type="number" class="minutes-input" value="${prefill.minutes || ''}" placeholder="分" min="0" max="1440" inputmode="numeric" aria-label="稼働分数" oninput="calculate()">
+    </div>
     <button class="btn-del" onclick="removeRow(${id})" aria-label="削除">削除</button>
   `;
   container.appendChild(div);
@@ -852,8 +1056,14 @@ function addExpense(prefill = {}) {
   div.className = 'expense-row';
   div.id = 'exp-' + id;
   div.innerHTML = `
-    <input type="text" class="exp-name" value="${prefill.name || ''}" placeholder="例：交通費（○○駅→△△駅 往復）" oninput="calculate()">
-    <input type="number" class="exp-amount" value="${prefill.amount || ''}" placeholder="金額" min="0" inputmode="numeric" oninput="calculate()">
+    <div class="fw">
+      <span class="mob-lbl">項目</span>
+      <input type="text" class="exp-name" value="${prefill.name || ''}" placeholder="例：交通費（○○駅→△△駅 往復）" oninput="calculate()">
+    </div>
+    <div class="fw">
+      <span class="mob-lbl">金額（税抜・円）</span>
+      <input type="number" class="exp-amount" value="${prefill.amount || ''}" placeholder="金額" min="0" inputmode="numeric" oninput="calculate()">
+    </div>
     <button class="btn-del" onclick="removeExpense(${id})">削除</button>
   `;
   container.appendChild(div);
@@ -925,6 +1135,7 @@ function calculate() {
   document.getElementById('deductAmount').textContent = `−¥${deduct.toLocaleString()}`;
   document.getElementById('deductRow').style.display = isRegistered ? 'none' : 'flex';
   document.getElementById('total').textContent = `¥${total.toLocaleString()}`;
+  document.getElementById('barTotal').textContent = `¥${total.toLocaleString()}`;
 
   updateInvoice({
     totalMinutes, hours, mins, wage, workAmount,
@@ -1175,6 +1386,11 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function scrollToPreview() {
+  const el = document.getElementById('sec-preview');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Event listeners on all top-level inputs
