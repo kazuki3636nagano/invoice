@@ -178,7 +178,7 @@
 
   .row-grid {
     display: grid;
-    grid-template-columns: 1.3fr 1fr 1fr 0.9fr 52px;
+    grid-template-columns: 1.2fr 0.9fr 0.9fr 0.7fr 0.9fr 52px;
     gap: 8px;
     align-items: center;
     margin-bottom: 8px;
@@ -579,7 +579,7 @@
       grid-template-areas:
         "date    date"
         "start   end"
-        "minutes minutes"
+        "break   minutes"
         "del     del";
       gap: 10px;
       padding: 14px;
@@ -602,12 +602,14 @@
     .row-grid > .fw-date { grid-area: date; }
     .row-grid > .fw-start { grid-area: start; }
     .row-grid > .fw-end { grid-area: end; }
+    .row-grid > .fw-break { grid-area: break; }
     .row-grid > .fw-min { grid-area: minutes; }
     .row-grid > .fw-min input {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 600;
       text-align: center;
       font-family: "SF Mono", Menlo, monospace;
+      background: #fff;
     }
     .row-grid > .btn-del {
       grid-area: del;
@@ -824,13 +826,15 @@
       <div>日付</div>
       <div>開始時刻</div>
       <div>終了時刻</div>
+      <div>休憩(分)</div>
       <div>稼働分数</div>
       <div></div>
     </div>
     <div id="rowsContainer"></div>
     <button class="btn-add" onclick="addRow()">＋ 日付を追加する</button>
     <div class="tip">
-      💡 タイムカードは1分単位。開始・終了を入れると分数が自動計算されます。分数を直接入力することもできます。
+      💡 タイムカードは1分単位。<b>開始・終了・休憩</b>を入れると稼働分数が自動計算されます。<br>
+      （休憩時間は分数で入力。例：60分休憩なら「60」）
     </div>
   </section>
 
@@ -1019,6 +1023,10 @@ function addRow(prefill = {}) {
       <span class="mob-lbl">終了時刻</span>
       <input type="time" value="${prefill.end || ''}" aria-label="終了時刻" onchange="autoCalc(${id});calculate()">
     </div>
+    <div class="fw fw-break">
+      <span class="mob-lbl">休憩（分）</span>
+      <input type="number" class="break-input" value="${prefill.breakMin || ''}" placeholder="0" min="0" max="1440" inputmode="numeric" aria-label="休憩時間(分)" oninput="autoCalc(${id});calculate()">
+    </div>
     <div class="fw fw-min">
       <span class="mob-lbl">稼働分数（分）</span>
       <input type="number" class="minutes-input" value="${prefill.minutes || ''}" placeholder="分" min="0" max="1440" inputmode="numeric" aria-label="稼働分数" oninput="calculate()">
@@ -1036,15 +1044,18 @@ function removeRow(id) {
 function autoCalc(id) {
   const row = document.getElementById('row-' + id);
   if (!row) return;
-  const inputs = row.querySelectorAll('input');
-  const start = inputs[1].value;
-  const end = inputs[2].value;
-  const minutesInput = inputs[3];
+  const start = row.querySelector('.fw-start input').value;
+  const end = row.querySelector('.fw-end input').value;
+  const breakInput = row.querySelector('.break-input');
+  const minutesInput = row.querySelector('.minutes-input');
+  const breakMin = parseInt(breakInput.value, 10) || 0;
   if (start && end) {
     const [sh, sm] = start.split(':').map(Number);
     const [eh, em] = end.split(':').map(Number);
     let diff = (eh * 60 + em) - (sh * 60 + sm);
-    if (diff < 0) diff += 24 * 60;
+    if (diff < 0) diff += 24 * 60; // overnight
+    diff -= breakMin;
+    if (diff < 0) diff = 0;
     minutesInput.value = diff;
   }
 }
