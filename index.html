@@ -183,6 +183,10 @@
     align-items: center;
     margin-bottom: 8px;
   }
+  body.multi-wage .row-grid:not(.header),
+  body.multi-wage .row-grid.header {
+    grid-template-columns: 1.0fr 0.9fr 0.85fr 0.85fr 0.65fr 0.85fr 52px;
+  }
   .row-grid.header {
     font-size: 11px;
     color: var(--ink-muted);
@@ -190,6 +194,68 @@
     letter-spacing: 0.04em;
     margin-bottom: 6px;
     padding: 0 4px;
+  }
+  .hdr-wage { display: none; }
+  body.multi-wage .hdr-wage { display: block; }
+  .fw-wage { display: none; }
+  body.multi-wage .fw-wage { display: block; }
+
+  /* Sub-label inside cards */
+  .sub-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+  .sub-tip {
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin: 0 0 12px;
+    line-height: 1.65;
+  }
+  .btn-add-sm {
+    padding: 10px;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  /* Wage rate list */
+  .wage-list-header {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 52px;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+    padding: 0 4px;
+  }
+  .wage-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 52px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .wage-row .wage-amount {
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  /* Wage selector inside row */
+  .wage-select {
+    width: 100%;
+    padding: 10px 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--ink);
+  }
+  .wage-select:focus {
+    outline: none;
+    border-color: var(--ink);
   }
   .expense-row {
     display: grid;
@@ -589,6 +655,15 @@
       margin-bottom: 10px;
       align-items: stretch;
     }
+    body.multi-wage .row-grid:not(.header) {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "date    date"
+        "wage    wage"
+        "start   end"
+        "break   minutes"
+        "del     del";
+    }
     .row-grid.header { display: none; }
     .row-grid > .fw { display: flex; flex-direction: column; }
     .row-grid > .fw .mob-lbl {
@@ -600,6 +675,7 @@
       letter-spacing: 0.02em;
     }
     .row-grid > .fw-date { grid-area: date; }
+    .row-grid > .fw-wage { grid-area: wage; }
     .row-grid > .fw-start { grid-area: start; }
     .row-grid > .fw-end { grid-area: end; }
     .row-grid > .fw-break { grid-area: break; }
@@ -617,6 +693,20 @@
       font-size: 13px;
       background: #fff;
     }
+    .wage-select { font-size: 16px; padding: 13px 12px; min-height: 48px; }
+
+    /* Wage list on mobile */
+    .wage-list-header { display: none; }
+    .wage-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 14px;
+      background: #fafaf7;
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .wage-row .btn-del { padding: 10px; background: #fff; }
 
     /* 経費行もカード型 */
     .expense-row {
@@ -816,14 +906,22 @@
 
   <!-- Step 3: 時給・稼働時間 -->
   <section class="card">
-    <h2 class="card-title"><span class="step-num">3</span>時給・稼働時間</h2>
-    <div class="field">
-      <label>時給（円・税抜）*</label>
-      <input type="number" id="hourlyWage" placeholder="例：1200" min="0" inputmode="numeric">
+    <h2 class="card-title"><span class="step-num">3</span>時給と稼働時間</h2>
+
+    <div class="sub-label">時給設定</div>
+    <p class="sub-tip">時間帯や業務によって複数の時給がある場合は、それぞれ登録してください。<br>1つしかない場合は1行のままでOKです。</p>
+    <div class="wage-list-header">
+      <div>名称</div>
+      <div>時給（円・税抜）</div>
+      <div></div>
     </div>
-    <div style="margin: 18px 0 10px; font-size: 13px; color: var(--ink-soft); font-weight: 600;">日ごとの稼働時間</div>
+    <div id="wageList"></div>
+    <button class="btn-add btn-add-sm" onclick="addWage()">＋ 時給を追加する</button>
+
+    <div class="sub-label" style="margin-top: 26px;">日ごとの稼働時間</div>
     <div class="row-grid header">
       <div>日付</div>
+      <div class="hdr-wage">時給</div>
       <div>開始時刻</div>
       <div>終了時刻</div>
       <div>休憩(分)</div>
@@ -834,7 +932,8 @@
     <button class="btn-add" onclick="addRow()">＋ 日付を追加する</button>
     <div class="tip">
       💡 タイムカードは1分単位。<b>開始・終了・休憩</b>を入れると稼働分数が自動計算されます。<br>
-      （休憩時間は分数で入力。例：60分休憩なら「60」）
+      （休憩時間は分数で入力。例：60分休憩なら「60」）<br>
+      💡 複数の時給を登録すると、各日ごとに時給を選べるようになります。
     </div>
   </section>
 
@@ -958,9 +1057,9 @@
 
   <div class="info-box">
     <strong>📐 計算ルール</strong>
-    ① 1ヶ月分の稼働時間を「分」のまま合計<br>
-    ② <span class="formula">合計分数 × 時給 ÷ 60</span> = 店舗稼働 報酬（1円未満切り捨て）<br>
-    ③ 報酬＋経費 = 小計（税抜）<br>
+    ① 1ヶ月分の稼働時間を「分」のまま、時給ごとにグループ化して合計<br>
+    ② 各時給グループで <span class="formula">合計分数 × 時給 ÷ 60</span> = 報酬（1円未満切り捨て）<br>
+    ③ 全グループの報酬＋経費 = 小計（税抜）<br>
     ④ <span class="formula">小計 × 10%</span> = 消費税（1円未満切り捨て）<br>
     ⑤ （インボイス未登録の場合のみ）<span class="formula">消費税 × 20%</span> を減額<br>
     <br>
@@ -1003,6 +1102,78 @@ document.getElementById('issueDate').value = today.toISOString().slice(0,10);
 
 let rowId = 0;
 let expenseId = 0;
+let wageId = 0;
+
+// ===== Wage management =====
+function getWages() {
+  const wages = [];
+  document.querySelectorAll('#wageList .wage-row').forEach(row => {
+    wages.push({
+      id: row.dataset.id,
+      name: row.querySelector('.wage-name').value.trim() || '時給',
+      amount: parseFloat(row.querySelector('.wage-amount').value) || 0
+    });
+  });
+  return wages;
+}
+
+function addWage(prefill = {}) {
+  const container = document.getElementById('wageList');
+  const id = 'w' + (wageId++);
+  const div = document.createElement('div');
+  div.className = 'wage-row';
+  div.dataset.id = id;
+  const wages = getWages();
+  const placeholderName = wages.length === 0 ? '通常' : (wages.length === 1 ? '夜間' : '');
+  div.innerHTML = `
+    <div class="fw">
+      <span class="mob-lbl">名称</span>
+      <input type="text" class="wage-name" value="${escapeAttr(prefill.name || '')}" placeholder="${placeholderName ? '例：' + placeholderName : '例：通常 / 夜間 / リーダー業務'}" oninput="onWageChange()">
+    </div>
+    <div class="fw">
+      <span class="mob-lbl">時給（円・税抜）</span>
+      <input type="number" class="wage-amount" value="${prefill.amount || ''}" placeholder="例：1200" min="0" inputmode="numeric" oninput="onWageChange()">
+    </div>
+    <button class="btn-del" onclick="removeWage('${id}')" aria-label="削除">削除</button>
+  `;
+  container.appendChild(div);
+  onWageChange();
+}
+
+function removeWage(id) {
+  const wages = getWages();
+  if (wages.length <= 1) {
+    showToast('時給は最低1つ必要です');
+    return;
+  }
+  const el = document.querySelector(`.wage-row[data-id="${id}"]`);
+  if (el) el.remove();
+  onWageChange();
+}
+
+function onWageChange() {
+  const wages = getWages();
+  // Toggle multi-wage mode (show/hide wage selector on rows)
+  document.body.classList.toggle('multi-wage', wages.length >= 2);
+  // Refresh all wage selectors
+  document.querySelectorAll('.wage-select').forEach(select => {
+    const prevValue = select.value;
+    select.innerHTML = wages.map(w =>
+      `<option value="${w.id}">${escapeHtml(w.name)}（¥${w.amount.toLocaleString()}）</option>`
+    ).join('');
+    // Restore selection if still valid; otherwise default to first
+    if (wages.some(w => w.id === prevValue)) {
+      select.value = prevValue;
+    } else if (wages.length > 0) {
+      select.value = wages[0].id;
+    }
+  });
+  calculate();
+}
+
+function escapeAttr(s) {
+  return String(s || '').replace(/"/g, '&quot;');
+}
 
 function addRow(prefill = {}) {
   const container = document.getElementById('rowsContainer');
@@ -1010,10 +1181,18 @@ function addRow(prefill = {}) {
   const div = document.createElement('div');
   div.className = 'row-grid';
   div.id = 'row-' + id;
+  const wages = getWages();
+  const wageOptions = wages.map(w =>
+    `<option value="${w.id}">${escapeHtml(w.name)}（¥${w.amount.toLocaleString()}）</option>`
+  ).join('');
   div.innerHTML = `
     <div class="fw fw-date">
       <span class="mob-lbl">日付</span>
       <input type="date" value="${prefill.date || ''}" aria-label="日付" oninput="calculate()">
+    </div>
+    <div class="fw fw-wage">
+      <span class="mob-lbl">時給</span>
+      <select class="wage-select" aria-label="時給" onchange="calculate()">${wageOptions}</select>
     </div>
     <div class="fw fw-start">
       <span class="mob-lbl">開始時刻</span>
@@ -1034,6 +1213,11 @@ function addRow(prefill = {}) {
     <button class="btn-del" onclick="removeRow(${id})" aria-label="削除">削除</button>
   `;
   container.appendChild(div);
+  // Set wage selector default
+  const sel = div.querySelector('.wage-select');
+  if (prefill.wageId && wages.some(w => w.id === prefill.wageId)) {
+    sel.value = prefill.wageId;
+  }
   calculate();
 }
 function removeRow(id) {
@@ -1103,18 +1287,42 @@ document.querySelectorAll('.radio-pill').forEach(p => {
 
 // ===== Calculation =====
 function calculate() {
+  const wages = getWages();
+  const wageMap = {};
+  wages.forEach(w => wageMap[w.id] = w);
+
+  // Group minutes by wage rate
+  const groups = {}; // {wageId: minutes}
   let totalMinutes = 0;
   let dayCount = 0;
-  document.querySelectorAll('.minutes-input').forEach(input => {
-    const v = parseInt(input.value, 10);
-    if (!isNaN(v) && v > 0) {
-      totalMinutes += v;
-      dayCount++;
-    }
+
+  document.querySelectorAll('#rowsContainer .row-grid').forEach(row => {
+    const minutesInput = row.querySelector('.minutes-input');
+    if (!minutesInput) return;
+    const minutes = parseInt(minutesInput.value, 10);
+    if (isNaN(minutes) || minutes <= 0) return;
+
+    const wageSelect = row.querySelector('.wage-select');
+    let wid = wageSelect ? wageSelect.value : (wages[0] && wages[0].id);
+    if (!wageMap[wid] && wages.length > 0) wid = wages[0].id;
+
+    groups[wid] = (groups[wid] || 0) + minutes;
+    totalMinutes += minutes;
+    dayCount++;
   });
 
-  const wage = parseFloat(document.getElementById('hourlyWage').value) || 0;
-  const workAmount = Math.floor(totalMinutes * wage / 60);
+  // Calculate work amount per group
+  let workAmount = 0;
+  const groupResults = [];
+  // Preserve wage order
+  wages.forEach(w => {
+    if (groups[w.id]) {
+      const mins = groups[w.id];
+      const amount = Math.floor(mins * w.amount / 60);
+      workAmount += amount;
+      groupResults.push({ wage: w, minutes: mins, amount });
+    }
+  });
 
   const expenses = [];
   document.querySelectorAll('#expenseContainer .expense-row').forEach(row => {
@@ -1149,9 +1357,10 @@ function calculate() {
   document.getElementById('barTotal').textContent = `¥${total.toLocaleString()}`;
 
   updateInvoice({
-    totalMinutes, hours, mins, wage, workAmount,
+    totalMinutes, hours, mins, groupResults, workAmount,
     expenses, expenseAmount,
-    subtotal, tax, isRegistered, deduct, total
+    subtotal, tax, isRegistered, deduct, total,
+    showWageName: wages.length > 1
   });
   checkRequired();
 }
@@ -1201,63 +1410,61 @@ function updateInvoice(d) {
   // Base rule: 時給 × 時間 の明細。
   // 0.5時間端数がある場合は 2行目（時給半額×1時間）で表現。
   // それ以外の分端数は「時給×分数÷60」の形で1行追加して円を合わせる。
+  // 複数時給の場合は、時給ごとに上記ルールを適用する。
   const lineItems = [];
-  if (d.wage > 0 && d.totalMinutes > 0) {
-    const total = d.totalMinutes;
-    const fullHours = Math.floor(total / 60);   // 整数時間
-    const remMin = total - fullHours * 60;       // 残りの分
+  const showWageName = d.showWageName;
+
+  d.groupResults.forEach(g => {
+    const wageLabel = showWageName ? `【${g.wage.name}】` : '';
+    const total = g.minutes;
+    const fullHours = Math.floor(total / 60);
+    const remMin = total - fullHours * 60;
     const has30 = remMin >= 30;
-    const extraMin = has30 ? remMin - 30 : remMin;  // 30分を抜いた残り
+    const extraMin = has30 ? remMin - 30 : remMin;
 
     // 1行目: 通常時給 × 整数時間
     if (fullHours > 0) {
       lineItems.push({
-        name: `店舗稼働（${monthLabel}）`,
+        name: `店舗稼働${wageLabel}（${monthLabel}）`,
         qty: `${fullHours}時間`,
-        unit: d.wage,
-        amount: fullHours * d.wage
+        unit: g.wage.amount,
+        amount: fullHours * g.wage.amount
       });
     }
     // 2行目: 0.5時間端数がある場合、時給半額×1時間
     if (has30) {
-      const halfWage = Math.floor(d.wage / 2);
+      const halfWage = Math.floor(g.wage.amount / 2);
       lineItems.push({
-        name: `店舗稼働（30分・時給半額換算）`,
+        name: `店舗稼働${wageLabel}（30分・時給半額換算）`,
         qty: `1時間`,
         unit: halfWage,
         amount: halfWage
       });
     }
-    // 3行目: 分端数が残っている場合、分単位で計算して差額調整
-    // ここまでの金額と、正しい金額（d.workAmount）の差を使う
-    const calcSoFar = (fullHours * d.wage) + (has30 ? Math.floor(d.wage / 2) : 0);
-    const diff = d.workAmount - calcSoFar;
+    // 3行目: 分端数の差額調整
+    const calcSoFar = (fullHours * g.wage.amount) + (has30 ? Math.floor(g.wage.amount / 2) : 0);
+    const diff = g.amount - calcSoFar;
     if (extraMin > 0 && diff !== 0) {
       lineItems.push({
-        name: `店舗稼働（${extraMin}分）`,
+        name: `店舗稼働${wageLabel}（${extraMin}分）`,
         qty: `${extraMin}分`,
-        unit: Math.round(d.wage * extraMin / 60),
+        unit: Math.round(g.wage.amount * extraMin / 60),
         amount: diff,
         raw: true
       });
-    } else if (diff !== 0 && lineItems.length === 0) {
-      // fallback
+    } else if (diff !== 0 && fullHours === 0 && !has30) {
+      // fallback for tiny amounts
+      const gh = Math.floor(g.minutes / 60);
+      const gm = g.minutes % 60;
       lineItems.push({
-        name: `店舗稼働（${d.totalMinutes}分）`,
-        qty: `${d.hours}時間${d.mins}分`,
-        unit: d.wage,
-        amount: d.workAmount,
+        name: `店舗稼働${wageLabel}（${g.minutes}分）`,
+        qty: `${gh}時間${gm}分`,
+        unit: g.wage.amount,
+        amount: g.amount,
         raw: true
       });
     }
-  } else if (d.totalMinutes > 0) {
-    lineItems.push({
-      name: `店舗稼働（${monthLabel}）`,
-      qty: `${d.hours}時間${d.mins}分`,
-      unit: d.wage,
-      amount: d.workAmount
-    });
-  }
+  });
 
   // Expenses
   d.expenses.forEach(e => {
@@ -1408,7 +1615,6 @@ function scrollToPreview() {
 [
   'fromName', 'fromAddress', 'fromTel', 'fromEmail',
   'invoiceNo', 'issueDate', 'targetMonth',
-  'hourlyWage',
   'invoiceNumber',
   'bankName', 'bankBranch', 'bankType', 'bankNumber', 'bankHolder'
 ].forEach(id => {
@@ -1419,6 +1625,8 @@ function scrollToPreview() {
   }
 });
 
+// Initial wage
+addWage();
 // Initial rows
 addRow();
 addRow();
