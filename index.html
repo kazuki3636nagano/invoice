@@ -197,8 +197,8 @@
   }
   .hdr-wage { display: none; }
   body.multi-wage .hdr-wage { display: block; }
-  .fw-wage { display: none; }
-  body.multi-wage .fw-wage { display: block; }
+  /* 時給セレクトのセル：単一時給モードでは確実に非表示 */
+  body:not(.multi-wage) .row-grid > .fw-wage { display: none; }
 
   /* Sub-label inside cards */
   .sub-label {
@@ -836,12 +836,36 @@
     .result-row.total .value { font-size: 26px; }
   }
   @media print {
-    body { background: #fff; }
-    .wrap { max-width: 100%; padding: 0; }
-    .card, .btn, .btn-add, .toggle-wrap, .page-header, .info-box, .note-box, .result-card, .mobile-bar { display: none; }
-    #sec-preview { padding: 0; margin: 0; border: none; background: #fff; }
-    #sec-preview .card-title, #sec-preview .actions { display: none; }
-    .invoice-sheet { border: none; padding: 0; }
+    @page { margin: 12mm; }
+    html, body {
+      background: #fff !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .wrap { max-width: 100%; padding: 0; margin: 0; }
+    /* Hide everything except the invoice preview */
+    .card, .btn, .btn-add, .toggle-wrap, .page-header, .info-box, .note-box, .result-card, .mobile-bar, .toast {
+      display: none !important;
+    }
+    /* Force preview visible (override .card display:none above) */
+    #sec-preview {
+      display: block !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      background: #fff !important;
+      box-shadow: none !important;
+    }
+    #sec-preview .card-title,
+    #sec-preview .actions,
+    #sec-preview .tip { display: none !important; }
+    .invoice-sheet {
+      display: block !important;
+      border: none !important;
+      padding: 0 !important;
+      background: #fff !important;
+      page-break-inside: avoid;
+    }
   }
 </style>
 </head>
